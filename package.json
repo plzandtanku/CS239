@@ -1,0 +1,17 @@
+{
+  "name": "cs239delta",
+  "version": "0.0.1-dev",
+  "author": "",
+  "description": "CS239 Delta Debugger Project",
+  "dependencies": {
+    "esprima": "1.2.2",
+    "escodegen": "1.9.1",
+    "fs": "0.0.1-security",
+    "tmp": "0.0.33"
+  },
+  "license": "Eclipse",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plzandtanku/CS239.git"
+  }
+}
