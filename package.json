@@ -9,6 +9,7 @@
     "estraverse": "^1.5.1",
     "fs": "0.0.1-security",
     "jquery": "^2.1.1",
+    "jsdelta": "^1.0.0",
     "tmp": "0.0.33"
   },
   "license": "Eclipse",
