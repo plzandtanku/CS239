@@ -2,6 +2,12 @@
 
 Run `npm install` after git clone
 
+## Usage
+```
+node cs239delta.js example/predicate.js example/input.js
+```
+Currently cs239delta.js does not work the same way as jsdelta, as described below.
+
 ## Example 
 See example folder for a predicate.js and input.js as examples.
 
