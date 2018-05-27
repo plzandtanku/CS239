@@ -15,30 +15,43 @@ function getFileName(tree){
 	fs.writeFileSync(tmpFile.name,code);
 	return tmpFile.name;
 }
+// // Can use this for later if planning to include compile error
+// function test(tree){
+// 	// Return true if predicate runs the input without any error, false otherwise
+// 	if (!pred_file){
+// 		console.log("NO PREDICATE");
+// 		return;
+// 	}
+// 	var js_file = getFileName(tree);
 
+// 	var pred = require("./" + pred_file);
+// 	var process = require('child_process');
+// 	var res = null;
+// 	try {
+// 		process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
+// 	} catch (err) {
+// 		return false;
+// 	}
+
+// 	if (res === null) {
+// 		return false;
+// 	}
+
+// 	return res.indexOf('success') !== -1;
+
+// }
 function test(tree){
-	// Return true if predicate runs the input without any error, false otherwise
 	if (!pred_file){
 		console.log("NO PREDICATE");
 		return;
 	}
 	var js_file = getFileName(tree);
-
-	var pred = require("./" + pred_file);
-	var process = require('child_process');
-	var res = null;
-	try {
-		process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
-	} catch (err) {
-		return false;
-	}
-
-	if (res === null) {
-		return false;
-	}
-
-	return res.indexOf('success') !== -1;
+	var pred = require('./' + pred_file);
+	var res = pred.test(tmpFile.name);
+//	console.log(res);
+	return res;
 }
+
 function shrink(subtree){
 	// if one line stop
 	console.log("TREE SHRINK");
