@@ -23,12 +23,10 @@ function test(tree){
 	}
 	var js_file = getFileName(tree);
 
-	// If predicate is a module
 	var pred = require("./" + pred_file);
-	
-	console.log('before res');
-	var res = pred.test(tmpFile.name);
-	console.log('test result:', res);
+	var process = require('child_process');
+	var res = process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
+
 	return res;
 }
 function shrink(subtree){
@@ -38,6 +36,7 @@ function shrink(subtree){
 	console.log("END");
 	switch(subtree.type){
 		case 'Program':
+			console.log('PROGRAM');
 			var arr = subtree.body;
 			var old = subtree.body;
 			for (var i=0;i<arr.length;i++){
@@ -52,6 +51,7 @@ function shrink(subtree){
 			}
 			break;
 		case 'FunctionDeclaration':
+			console.log('FUNC_DECLAR');
 			var block = subtree.body;
 			var arr = block.body;
 			var old = block.body;
@@ -63,16 +63,16 @@ function shrink(subtree){
 			}
 			break;
 		default:
-			return subtree;
 			console.log("UNRECOGNIZED");
+			return subtree;
 	}
 }
 function main() {
 	if (process.argv.length < 4){
 		var usage = `
-> cs239delta.js [predicate_file] [js_file]
-	predicate_file - the file that executes a test on the js_file
-	js_file - the code being analyzed for errors against some test
+			> cs239delta.js [predicate_file] [js_file]
+			predicate_file - the file that executes a test on the js_file
+			js_file - the code being analyzed for errors against some test
 		`;
 		console.log("INVALID ARGS");
 		console.log(usage);
@@ -90,7 +90,6 @@ function main() {
 	var ans = shrink(ast);
 	console.log(ans);
 	console.log(escodegen.generate(ans));
-
 }
 
 main();
