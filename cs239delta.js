@@ -17,6 +17,7 @@ function getFileName(tree){
 }
 
 function test(tree){
+	// Return true if predicate runs the input without any error, false otherwise
 	if (!pred_file){
 		console.log("NO PREDICATE");
 		return;
@@ -25,9 +26,18 @@ function test(tree){
 
 	var pred = require("./" + pred_file);
 	var process = require('child_process');
-	var res = process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
+	var res = null;
+	try {
+		process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
+	} catch (err) {
+		return false;
+	}
 
-	return res;
+	if (res === null) {
+		return false;
+	}
+
+	return res.indexOf('success') !== -1;
 }
 function shrink(subtree){
 	// if one line stop
@@ -88,7 +98,7 @@ function main() {
 	test(ast);
 
 	var ans = shrink(ast);
-	console.log(ans);
+	console.log('ans: ', ans);
 	console.log(escodegen.generate(ans));
 }
 
