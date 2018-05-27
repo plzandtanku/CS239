@@ -26,9 +26,10 @@ Minimisation finished; final version is at /tmp/tmp0/delta_js_smallest.js (21 by
 }());
 ----------------------------------------------------------
 */
+
 var esprima = require('esprima'),
-    estraverse = require('estraverse'),
-    fs = require('fs');
+estraverse = require('estraverse'),
+fs = require('fs');
 var file = process.argv[2];
 var ast = esprima.parse(String(fs.readFileSync(file)));
 estraverse.traverse(ast, {
@@ -37,3 +38,8 @@ estraverse.traverse(ast, {
       console.log(node.callee.object.name.toUpperCase());
   }
 });
+
+exports.cmd = "node example/predicate.js";
+exports.checkResult = function (errCode, stdout, stderr, time) {
+  return errCode == 0;
+};

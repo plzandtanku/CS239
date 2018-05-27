@@ -1,12 +1,13 @@
-var esprima = require('esprima');
-var escodegen = require('escodegen');
-var fs = require('fs');
-var tmp = require('tmp');
+var esprima = require('esprima'),
+    escodegen = require('escodegen'),
+    fs = require('fs'),
+    tmp = require('tmp');
 
 var tmpFile;
 var pred_file;
 var debug = 0;
 var ast;
+
 function getFileName(tree){
 	var code = escodegen.generate(tree);
 	if (debug) console.log(code);
@@ -14,15 +15,20 @@ function getFileName(tree){
 	fs.writeFileSync(tmpFile.name,code);
 	return tmpFile.name;
 }
+
 function test(tree){
 	if (!pred_file){
 		console.log("NO PREDICATE");
 		return;
 	}
 	var js_file = getFileName(tree);
-	var pred = require("./"+pred_file);
+
+	// If predicate is a module
+	var pred = require("./" + pred_file);
+	
+	console.log('before res');
 	var res = pred.test(tmpFile.name);
-//	console.log(res);
+	console.log('test result:', res);
 	return res;
 }
 function shrink(subtree){
@@ -86,4 +92,5 @@ function main() {
 	console.log(escodegen.generate(ans));
 
 }
+
 main();
