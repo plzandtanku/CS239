@@ -1,7 +1,8 @@
 var esprima = require('esprima'),
     escodegen = require('escodegen'),
     fs = require('fs'),
-    tmp = require('tmp');
+	tmp = require('tmp'),
+	path = require('path');
 
 var tmpFile;
 var pred_file;
@@ -113,6 +114,23 @@ function main() {
 	var ans = shrink(ast);
 	console.log('ans: ', ans);
 	console.log(escodegen.generate(ans));
+
+	path_seps = path.dirname(js_file).split(path.sep);
+	last_path = path_seps[path_seps.length - 1];
+
+	// Save result into `js_file/../tmp/delta_minimized.js`
+	if (!fs.existsSync(`${__dirname}/examples/tmp`)) {
+		fs.mkdirSync(`${__dirname}/examples/tmp`);
+	}
+	if (!fs.existsSync(`${__dirname}/examples/tmp/${last_path}`)) {
+		fs.mkdirSync(`${__dirname}/examples/tmp/${last_path}`);
+	}
+	fs.writeFile(`${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`, escodegen.generate(ans), (err) => {
+		console.log(err);
+	});
+
+	console.log('Minimization result saved to ', `${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`);
 }
 
 main();
+module.exports.reduce = main;
