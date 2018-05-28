@@ -133,4 +133,3 @@ function main() {
 }
 
 main();
-module.exports.reduce = main;
