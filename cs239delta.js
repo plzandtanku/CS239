@@ -59,6 +59,7 @@ function shrink(subtree){
 	console.log(ast);
 	console.log("END");
 	switch(subtree.type){
+		case 'BlockStatement':
 		case 'Program':
 			console.log('PROGRAM');
 			var arr = subtree.body;
@@ -82,10 +83,19 @@ function shrink(subtree){
 			for (var i=0;i<arr.length;i++){
 				block.body=arr.slice(0,i).concat(arr.slice(i+1,arr.length));
 				if(!test(ast)){
-					return old[i];
+					return shrink(old[i]);
 				}
 			}
 			break;
+		case 'IfStatement':
+			console.log('IF_STATE');
+			var conseq = subtree.consequent;
+			var alt = subtree.alternate;
+			subtree.consequent = null;
+			if (!test(ast)){
+				return shrink(conseq);
+			}
+			return shrink(alt);
 		default:
 			console.log("UNRECOGNIZED");
 			return subtree;
@@ -117,7 +127,6 @@ function main() {
 
 	path_seps = path.dirname(js_file).split(path.sep);
 	last_path = path_seps[path_seps.length - 1];
-
 	// Save result into `js_file/../tmp/delta_minimized.js`
 	if (!fs.existsSync(`${__dirname}/examples/tmp`)) {
 		fs.mkdirSync(`${__dirname}/examples/tmp`);
