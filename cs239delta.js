@@ -143,10 +143,6 @@ function main() {
 	console.log(file);
 	console.log("---end of file---");
 	ast = esprima.parse(file);
-	if (!test(ast)){
-		console.log("Input file does not pass predicate file, so unable to reduce");
-		return;
-	}
 
 	// Shrink the file
 	var ans = shrink(ast);
