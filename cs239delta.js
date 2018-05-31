@@ -16,31 +16,7 @@ function getFileName(tree){
 	fs.writeFileSync(tmpFile.name,code);
 	return tmpFile.name;
 }
-// // Can use this for later if planning to include compile error
-// function test(tree){
-// 	// Return true if predicate runs the input without any error, false otherwise
-// 	if (!pred_file){
-// 		console.log("NO PREDICATE");
-// 		return;
-// 	}
-// 	var js_file = getFileName(tree);
 
-// 	var pred = require("./" + pred_file);
-// 	var process = require('child_process');
-// 	var res = null;
-// 	try {
-// 		process.execSync(pred.cmd + ' ' + js_file, {stdio: 'pipe'});
-// 	} catch (err) {
-// 		return false;
-// 	}
-
-// 	if (res === null) {
-// 		return false;
-// 	}
-
-// 	return res.indexOf('success') !== -1;
-
-// }
 function test(tree){
 	if (!pred_file){
 		console.log("NO PREDICATE");
@@ -48,8 +24,12 @@ function test(tree){
 	}
 	var js_file = getFileName(tree);
 	var pred = require('./' + pred_file);
-	var res = pred.test(tmpFile.name);
-//	console.log(res);
+	try {
+		var res = pred.test(tmpFile.name);
+	} catch (err) {
+		return false;
+	}
+	console.log('res is: ', res);
 	return res;
 }
 
@@ -58,6 +38,7 @@ function shrink(subtree){
 	console.log("TREE SHRINK");
 	console.log(ast);
 	console.log("END");
+	console.log(subtree.type)
 	switch(subtree.type){
 		case 'BlockStatement':
 		case 'Program':
@@ -135,7 +116,7 @@ function main() {
 		fs.mkdirSync(`${__dirname}/examples/tmp/${last_path}`);
 	}
 	fs.writeFile(`${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`, escodegen.generate(ans), (err) => {
-		console.log(err);
+		if (err) console.log(err);
 	});
 
 	console.log('Minimization result saved to ', `${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`);
