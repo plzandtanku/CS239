@@ -21,7 +21,7 @@ var ast;
  * */
 function getFileName(tree){
 	var code = escodegen.generate(tree);
-	console.log(code);
+//	console.log(code);
 	if (debug) console.log(code);
 	tmpFile = tmp.fileSync();
 	fs.writeFileSync(tmpFile.name,code);
@@ -63,21 +63,34 @@ function shrink(subtree){
 			console.log('PROGRAM');
 			var arr = subtree.body;
 			var old = subtree.body;
-			for (var i=0;i<arr.length;i++){
-				subtree.body=arr.slice(0,i).concat(arr.slice(i+1,arr.length));
-				console.log(subtree.body);
-				if(!test(ast)){
-					// need to put back the removed element in tree
-					subtree.body = arr;
-					//console.log("yeezy");
-					//console.log(subtree);
-					return shrink(old[i]);
+			if (arr.length > 1) {
+				for (var i=0;i<arr.length;i++){
+					if (arr[i].type == 'ExpressionStatement'){
+					}
+					subtree.body=arr.slice(0,i).concat(arr.slice(i+1,arr.length));
+					console.log(subtree.body);
+					if(!test(ast)){
+						// need to put back the removed element in tree
+						subtree.body = arr;
+						return shrink(old[i]);
+					}
 				}
 			}
+			if (arr.length == 1) return shrink(arr[0]);
+			return subtree;
 			break;
+		case 'ExpressionStatement':
+			return shrink(subtree.expression);
+		case 'CallExpression':
+			return shrink(subtree.callee);
+		case 'FunctionExpression':
+			return shrink(subtree.body);
 		case 'FunctionDeclaration':
 			console.log('FUNC_DECLAR');
 			var block = subtree.body;
+			if (subtree.type === 'CallExpression'){
+				block = subtree.callee;
+			}
 			var arr = block.body;
 			var old = block.body;
 			for (var i=0;i<arr.length;i++){
@@ -86,6 +99,7 @@ function shrink(subtree){
 					return shrink(old[i]);
 				}
 			}
+			return subtree;
 			break;
 		case 'IfStatement':
 			console.log('IF_STATE');
@@ -140,10 +154,9 @@ function main() {
 
 	// Display contents of input file (for debugging)
 	console.log("---Showing content of "+ process.argv[3] +"---");	
-	console.log(file);
+//	console.log(file);
 	console.log("---end of file---");
 	ast = esprima.parse(file);
-
 	// Shrink the file
 	var ans = shrink(ast);
 	var ans_code = 	escodegen.generate(ans);
