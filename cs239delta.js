@@ -15,9 +15,9 @@ var pred_file;
 var debug = 0;
 var ast;
 // Two possible forms of code to test
-// 1. runtime - we are testing code that runs on its own
-// 2. not run time - this refers to a package or library file that has function exports
-var runtime = true;
+// 1. testing code that runs on its own
+// 2. testing a package/module function. These files have function exports
+var is_package = false;
 /**
  * Generates a temp file representing to code for an AST
  * used for evaluating/testing an AST
@@ -69,8 +69,8 @@ function shrink(subtree){
 			var arr = subtree.body;
 			var old = subtree.body;
 			if (arr.length > 1) {
-				// for runtime files, we can chop in half more leniently
-				if (runtime) {
+				// for non-package files, we can chop in half more leniently
+				if (!is_package) {
 					subtree.body=arr.slice(0,arr.length/2);
 					if(!test(ast)){
 						// need to put back the removed element in tree
@@ -178,9 +178,9 @@ function main() {
 	console.log("---Showing content of "+ process.argv[3] +"---");	
 //	console.log(file);
 	console.log("---end of file---");
-	// for now we assume an exports word indicates a non-runtime file
+	// for now we assume an exports word indicates a package file
 	// we could use a flag for this in the future
-	if (/exports/.test(file)) runtime = false;
+	if (/exports/.test(file)) is_package = true;
 
 	ast = esprima.parse(file);
 	// Shrink the file
