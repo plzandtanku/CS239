@@ -14,7 +14,10 @@ var tmpFile;
 var pred_file;
 var debug = 0;
 var ast;
-
+// Two possible forms of code to test
+// 1. runtime - we are testing code that runs on its own
+// 2. not run time - this refers to a package or library file that has function exports
+var runtime = true;
 /**
  * Generates a temp file representing to code for an AST
  * used for evaluating/testing an AST
@@ -43,20 +46,22 @@ function test(tree){
 	} catch (err) {
 		return false;
 	}
-	console.log('res is: ', res);
+//	console.log('res is: ', res);
 	return res;
 }
 
 
 /*
- * Performs 'ddmin' on a given AST (abstract syntax tree)
+ * Performs delta debugging on a given AST (abstract syntax tree)
  */
 function shrink(subtree){
 	// if one line stop
-	console.log("TREE SHRINK");
-	console.log(ast);
-	console.log("END");
-	console.log(subtree.type)
+//	console.log("TREE SHRINK");
+//	console.log(ast);
+//	console.log("END");
+//	console.log(escodegen.generate(ast));
+
+//	console.log(subtree.type)
 	switch(subtree.type){
 		case 'BlockStatement':
 		case 'Program':
@@ -64,15 +69,26 @@ function shrink(subtree){
 			var arr = subtree.body;
 			var old = subtree.body;
 			if (arr.length > 1) {
-				for (var i=0;i<arr.length;i++){
-					if (arr[i].type == 'ExpressionStatement'){
-					}
-					subtree.body=arr.slice(0,i).concat(arr.slice(i+1,arr.length));
-					console.log(subtree.body);
+				// for runtime files, we can chop in half more leniently
+				if (runtime) {
+					subtree.body=arr.slice(0,arr.length/2);
 					if(!test(ast)){
 						// need to put back the removed element in tree
-						subtree.body = arr;
-						return shrink(old[i]);
+						subtree.body = arr.slice(arr.length/2);
+					}
+					return shrink(subtree);
+				}
+				// for packages/library files, we can't just chop in half because of
+				// statements that depend on each other (exports calls)
+				else {
+					for (var i=0;i<arr.length;i++){
+						subtree.body=arr.slice(0,i).concat(arr.slice(i+1,arr.length));
+					//	console.log(subtree.body);
+						if(!test(ast)){
+							// need to put back the removed element in tree
+							subtree.body = arr;
+							return shrink(old[i]);
+						}
 					}
 				}
 			}
@@ -82,7 +98,11 @@ function shrink(subtree){
 		case 'ExpressionStatement':
 			return shrink(subtree.expression);
 		case 'CallExpression':
-			return shrink(subtree.callee);
+			// Not all CallExpressions can be recursed on
+			if (subtree.arguments.length > 0 
+					&& subtree.arguments[0].type == 'ThisExpression'
+			) return shrink(subtree.callee);
+			return subtree;
 		case 'FunctionExpression':
 			return shrink(subtree.body);
 		case 'FunctionDeclaration':
@@ -111,7 +131,9 @@ function shrink(subtree){
 			}
 			return shrink(alt);
 		default:
+			// This means we don't handle it specifically and just return what we have
 			console.log("UNRECOGNIZED");
+//			console.log(subtree);
 			return subtree;
 	}
 }
@@ -156,6 +178,10 @@ function main() {
 	console.log("---Showing content of "+ process.argv[3] +"---");	
 //	console.log(file);
 	console.log("---end of file---");
+	// for now we assume an exports word indicates a non-runtime file
+	// we could use a flag for this in the future
+	if (/exports/.test(file)) runtime = false;
+
 	ast = esprima.parse(file);
 	// Shrink the file
 	var ans = shrink(ast);
