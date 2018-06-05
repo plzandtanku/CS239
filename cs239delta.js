@@ -14,6 +14,13 @@ var tmpFile;
 var pred_file;
 var debug = 0;
 var ast;
+
+// Graphing components
+var plotly = require('plotly')("plzandtanku","ueloaDKZuTxtYNYhkO2o");
+var opn = require('opn');
+var lineCounts = [];
+
+
 // Two possible forms of code to test
 // 1. testing code that runs on its own
 // 2. testing a package/module function. These files have function exports
@@ -55,6 +62,8 @@ function test(tree){
  * Performs delta debugging on a given AST (abstract syntax tree)
  */
 function shrink(subtree){
+	var linesOfCode = escodegen.generate(subtree).split("\n").length;
+	lineCounts.push(linesOfCode);
 	// if one line stop
 //	console.log("TREE SHRINK");
 //	console.log(ast);
@@ -65,7 +74,7 @@ function shrink(subtree){
 	switch(subtree.type){
 		case 'BlockStatement':
 		case 'Program':
-			console.log('PROGRAM');
+	//		console.log('PROGRAM');
 			var arr = subtree.body;
 			var old = subtree.body;
 			if (arr.length > 1) {
@@ -106,7 +115,7 @@ function shrink(subtree){
 		case 'FunctionExpression':
 			return shrink(subtree.body);
 		case 'FunctionDeclaration':
-			console.log('FUNC_DECLAR');
+	//		console.log('FUNC_DECLAR');
 			var block = subtree.body;
 			if (subtree.type === 'CallExpression'){
 				block = subtree.callee;
@@ -122,7 +131,7 @@ function shrink(subtree){
 			return subtree;
 			break;
 		case 'IfStatement':
-			console.log('IF_STATE');
+	//		console.log('IF_STATE');
 			var conseq = subtree.consequent;
 			var alt = subtree.alternate;
 			subtree.consequent = null;
@@ -132,7 +141,7 @@ function shrink(subtree){
 			return shrink(alt);
 		default:
 			// This means we don't handle it specifically and just return what we have
-			console.log("UNRECOGNIZED");
+	//		console.log("UNRECOGNIZED");
 //			console.log(subtree);
 			return subtree;
 	}
@@ -156,6 +165,26 @@ function writeOutput(ans_code,js_file){
 	console.log('Minimization result saved to ', `${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`);
 }
 
+function graphResults() {
+	console.log("\n\n");
+	console.log("Graphing Results........");
+	var steps = [];
+	for (var i=1;i<=lineCounts.length;i++){
+		steps.push(i);
+	}
+	var data = [{
+		y: lineCounts,
+		x: steps,
+		type: "scatter"
+	}];
+	var layout = {fileopt : "overwrite", filename : "simple-node-example"};
+	plotly.plot(data, layout, function (err, msg) {
+		if (err) return console.log(err);
+		console.log(msg);
+		opn(msg.url,{wait: false});
+	});
+
+}
 function main() {
 	if (process.argv.length < 4 || process.argv.length > 5){
 		var usage = `
@@ -173,11 +202,11 @@ function main() {
 	var js_file = process.argv[3];
 	var output = process.argv[4];
 	var file = fs.readFileSync(js_file).toString();
-
+console.log("Running on input [" + js_file + "] with predicate file [" + pred_file +"].........");
 	// Display contents of input file (for debugging)
-	console.log("---Showing content of "+ process.argv[3] +"---");	
+//	console.log("---Showing content of "+ process.argv[3] +"---");	
 //	console.log(file);
-	console.log("---end of file---");
+//	console.log("---end of file---");
 	// for now we assume an exports word indicates a package file
 	// we could use a flag for this in the future
 	if (/exports/.test(file)) is_package = true;
@@ -186,12 +215,15 @@ function main() {
 	// Shrink the file
 	var ans = shrink(ast);
 	var ans_code = 	escodegen.generate(ans);
+	console.log("Resulting AST:");
 	console.log('ans: ', ans);
+	console.log("Resulting code:");
 	console.log(ans_code);
-
+	
 	if (output) {
 		writeOutput(ans_code,js_file);
 	}
+	graphResults();
 }
 
 main();
