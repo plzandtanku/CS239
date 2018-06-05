@@ -125,11 +125,12 @@ function shrink(subtree){
 			console.log('IF_STATE');
 			var conseq = subtree.consequent;
 			var alt = subtree.alternate;
-			subtree.consequent = null;
-			if (!test(ast)){
+			subtree.alternate = null;
+			if (test(ast)){
 				return shrink(conseq);
 			}
-			return shrink(alt);
+			subtree.consequent = alt;
+			return shrink(subtree);
 		default:
 			// This means we don't handle it specifically and just return what we have
 			console.log("UNRECOGNIZED");
