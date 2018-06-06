@@ -7,31 +7,44 @@
 var fs = require('fs');
 var lines = 1000;
 var d = 1;
+var b = 1;
+var count = lines;
 if (process.argv.length > 2){
 	lines = process.argv[2];
+	count = lines;
 }
 if (process.argv.length > 3){
-	lines = process.argv[2];
 	d = process.argv[3];
+	count = count * d;
+}
+if (process.argv.length > 4){
+	b = process.argv[4];
+	count = count * b;
 }
 
-var needle = Math.floor((Math.random() * lines) +1);
+
+var needle = Math.floor((Math.random() * count) +1);
 var code = "";
+var c = 1;
 for (var i=1;i<=lines;i++){
-	if (d > 1){
-		for (var j = 0;j<d;j++){
-			code += "if (1 < 2) {\n";
+	for (var j = 0;j<d;j++){
+		if (d > 1) code += "if (1 < 2) {\n";
+		for (var k = 1;k<=b;k++){
+			if (b > 1) {
+				code += "var power_level"+ c + " = 9001;\n";
+				code += "if ( power_level"+c+" > 9000 ) {\n";
+			}
+			if (c!=needle){
+				code += 'console.log("nope");\n';
+			}else{
+				code += 'console.log("success");\n';
+			}
+			if (b > 1) code += "}\n";
+			c++;
 		}
 	}
-	if (i!=needle){
-		code += 'console.log("nope");\n';
-	}else{
-		code += 'console.log("success");\n';
-	}
-	if (d > 1){
-		for (var j = 0;j<d;j++){
-			code += "}\n";
-		}
+	for (var j = 0;j<d;j++){
+		if (d > 1) code += "}\n";
 	}
 }
 fs.writeFileSync("generated_input.js",code);

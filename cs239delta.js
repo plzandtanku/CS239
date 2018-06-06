@@ -20,6 +20,8 @@ var plotly = require('plotly')("plzandtanku","ueloaDKZuTxtYNYhkO2o");
 var opn = require('opn');
 var lineCounts = [];
 
+//argument parsing
+var argv = require('optimist').argv;
 
 // Two possible forms of code to test
 // 1. testing code that runs on its own
@@ -80,11 +82,25 @@ function shrink(subtree){
 			if (arr.length > 1) {
 				// for non-package files, we can chop in half more leniently
 				if (!is_package) {
+//					console.log(escodegen.generate(subtree))
+//					console.log(subtree.body);
 					subtree.body=arr.slice(0,arr.length/2);
 					if(!test(ast)){
 						// need to put back the removed element in tree
+//						console.log(escodegen.generate(subtree));
+
 						subtree.body = arr.slice(arr.length/2);
+
+//						console.log("-----");
+//						console.log(escodegen.generate(subtree));
+						// If the other half also fails, give up and return what we have
+						if (!test(ast)){
+							subtree.body = arr; 
+							return subtree;
+						}
+						return shrink(subtree);
 					}
+				//	console.log(subtree);
 					return shrink(subtree);
 				}
 				// for packages/library files, we can't just chop in half because of
@@ -135,17 +151,32 @@ function shrink(subtree){
 			var conseq = subtree.consequent;
 			var alt = subtree.alternate;
 			subtree.alternate = null;
+//			console.log(escodegen.generate(ast));
+//			console.log(subtree);
+
 			if (test(ast)){
 				return shrink(conseq);
 			}
+			if (alt == null) return subtree;
 			subtree.consequent = alt;
 			return shrink(subtree);
+		case 'AssignmentExpression':
+			if (subtree.right.type == 'FunctionExpression') return shrink(subtree.right);
+			break;
+		case 'VariableDeclarator':
+			if (subtree.init.type == 'FunctionExpression') return shrink(subtree.init);
+			break;
+		case 'VariableDeclaration':
+			// we're only handling if there is one declaration for now
+			if (subtree.declarations.length > 0) return shrink(subtree.declarations[0]);
+			break;
 		default:
 			// This means we don't handle it specifically and just return what we have
 	//		console.log("UNRECOGNIZED");
 //			console.log(subtree);
 			return subtree;
 	}
+	return subtree;
 }
 
 // dump results to file
@@ -156,14 +187,14 @@ function writeOutput(ans_code,js_file){
 	if (!fs.existsSync(`${__dirname}/examples/tmp`)) {
 		fs.mkdirSync(`${__dirname}/examples/tmp`);
 	}
-	if (!fs.existsSync(`${__dirname}/examples/tmp/${last_path}`)) {
-		fs.mkdirSync(`${__dirname}/examples/tmp/${last_path}`);
-	}
-	fs.writeFile(`${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`, ans_code, (err) => {
+//	if (!fs.existsSync(`${__dirname}/examples/tmp/${last_path}`)) {
+//		fs.mkdirSync(`${__dirname}/examples/tmp/${last_path}`);
+//	}
+	fs.writeFile(`${__dirname}/examples/tmp/delta_js_smallest.js`, ans_code, (err) => {
 		if (err) console.log(err);
 	});
 
-	console.log('Minimization result saved to ', `${__dirname}/examples/tmp/${last_path}/delta_js_smallest.js`);
+	console.log('Minimization result saved to ', `${__dirname}/examples/tmp/delta_js_smallest.js`);
 }
 
 function graphResults() {
@@ -224,7 +255,7 @@ console.log("Running on input [" + js_file + "] with predicate file [" + pred_fi
 	if (output) {
 		writeOutput(ans_code,js_file);
 	}
-	graphResults();
+	if (argv.graph)	graphResults();
 }
 
 main();
