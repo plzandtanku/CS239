@@ -96,7 +96,8 @@ function shrink(subtree){
 						// If the other half also fails, give up and return what we have
 						if (!test(ast)){
 							subtree.body = arr; 
-							return subtree;
+							is_package = true;
+							return shrink(subtree);
 						}
 						return shrink(subtree);
 					}
