@@ -20,6 +20,9 @@ var plotly = require('plotly')("plzandtanku","ueloaDKZuTxtYNYhkO2o");
 var opn = require('opn');
 var lineCounts = [];
 
+// verbose outputting
+var verbose = false;
+
 //argument parsing
 var argv = require('optimist').argv;
 
@@ -44,6 +47,11 @@ function getFileName(tree){
  * Test the current AST for true/false against a predicate file
  */
 function test(tree){
+	if (verbose){
+		console.log("--------------");
+		console.log(escodegen.generate(tree));
+	}
+
 	if (!pred_file){
 		console.log("NO PREDICATE");
 		return;
@@ -70,8 +78,6 @@ function shrink(subtree){
 //	console.log("TREE SHRINK");
 //	console.log(ast);
 //	console.log("END");
-//	console.log(escodegen.generate(ast));
-
 //	console.log(subtree.type)
 	switch(subtree.type){
 		case 'BlockStatement':
@@ -97,6 +103,7 @@ function shrink(subtree){
 						if (!test(ast)){
 							subtree.body = arr; 
 							is_package = true;
+
 							return shrink(subtree);
 						}
 						return shrink(subtree);
@@ -219,7 +226,8 @@ function graphResults() {
 
 }
 function main() {
-	if (process.argv.length < 4 || process.argv.length > 5){
+	if (argv.v) verbose = true;
+	if (process.argv.length < 4){
 		var usage = `
 			> cs239delta.js [predicate_file] [js_file] [output]
 			predicate_file - the file that executes a test on the js_file
@@ -242,8 +250,8 @@ console.log("Running on input [" + js_file + "] with predicate file [" + pred_fi
 //	console.log("---end of file---");
 	// for now we assume an exports word indicates a package file
 	// we could use a flag for this in the future
-	if (/exports/.test(file)) is_package = true;
-
+//	if (/exports/.test(file)) is_package = true;
+	if (argv.f) is_package = true;
 	ast = esprima.parse(file);
 	// Shrink the file
 	var ans = shrink(ast);

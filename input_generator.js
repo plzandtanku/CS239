@@ -8,6 +8,7 @@ var fs = require('fs');
 var lines = 1000;
 var d = 1;
 var b = 1;
+var s = false;
 var count = lines;
 if (process.argv.length > 2){
 	lines = process.argv[2];
@@ -21,6 +22,7 @@ if (process.argv.length > 4){
 	b = process.argv[4];
 	count = count * b;
 }
+if (process.argv.length > 5) s = true;
 
 
 var needle = Math.floor((Math.random() * count) +1);
@@ -32,7 +34,8 @@ for (var i=1;i<=lines;i++){
 		for (var k = 1;k<=b;k++){
 			if (b > 1) {
 				code += "var power_level"+ c + " = 9001;\n";
-				code += "if ( power_level"+c+" > 9000 ) {\n";
+				if (!s) code += "if ( power_level"+c+" > 9000 ) {\n";
+				if (s) code += "if (! (2 + 2 == 5) ) {\n";
 			}
 			if (c!=needle){
 				code += 'console.log("nope");\n';
