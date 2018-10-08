@@ -1,4 +1,5 @@
-# CS239 - analysis for javascript using ddmin methodologies
+# CS239 
+Analysis for javascript using ddmin methodologies
 
 Run `npm install` after git clone
 
